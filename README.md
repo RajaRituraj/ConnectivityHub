@@ -1,178 +1,193 @@
 # 📡 ConnectivityHub
 
-A modern Android connectivity toolkit demonstrating **Wi-Fi, Bluetooth, and Bluetooth Low Energy (BLE)** using **Kotlin, Jetpack Compose, and MVI architecture**.
+A modern Android sample app for exploring **Wi-Fi, Bluetooth, and Bluetooth Low Energy (BLE)** using **Kotlin, Jetpack Compose, Coroutines, Flow, and MVI-style state management**.
 
-The project focuses on practical Android connectivity APIs, runtime permissions, device discovery, connection state management, and reactive UI updates.
+The project is designed as a practical reference for Android connectivity APIs, runtime permissions, device discovery, connection state, and reactive UI.
 
 ## ✨ Features
 
-* 📶 Wi-Fi network scanning and connectivity status
-* 🔵 Bluetooth device discovery
-* 🟦 Bluetooth Low Energy (BLE) scanning
-* 🔗 Device connection state handling
-* 🔐 Runtime permission handling
-* ⚡ Reactive UI using Jetpack Compose
-* 🧠 MVI-based state management
-* 🔄 Kotlin Coroutines and Flow
-* 🧩 Clean and reusable components
+- 📶 Wi-Fi connectivity and network information
+- 🔵 Classic Bluetooth discovery and connection state
+- 🟦 Bluetooth Low Energy (BLE) scanning
+- 🔐 Runtime permission handling for modern Android versions
+- ⚡ Jetpack Compose UI
+- 🧠 Contract + ViewModel based state management
+- 🔄 Kotlin Coroutines and Flow
+- 🧩 Feature-oriented package structure
+- 🧭 Compose Navigation
 
 ## 🛠 Tech Stack
 
-* **Kotlin**
-* **Jetpack Compose**
-* **MVI Architecture**
-* **Coroutines**
-* **Flow / StateFlow**
-* **Android Connectivity APIs**
-* **Bluetooth / BLE APIs**
-* **Wi-Fi APIs**
-* **Gradle Kotlin DSL**
+| Technology | Usage |
+|---|---|
+| Kotlin | Application development |
+| Jetpack Compose | Declarative UI |
+| Material 3 | UI components |
+| Coroutines | Asynchronous operations |
+| Flow / StateFlow | Reactive state |
+| ViewModel | Presentation state |
+| Navigation | Screen navigation |
+| Android Bluetooth APIs | Bluetooth discovery/connectivity |
+| Android BLE APIs | BLE scanning |
+| Android Wi-Fi APIs | Wi-Fi connectivity |
+| Accompanist Permissions | Runtime permission handling |
+| Kotlin Serialization | Serialization support |
 
 ## 🏗 Architecture
 
-The application follows an MVI-style unidirectional data-flow approach:
+The project follows a feature-oriented architecture with a clear separation between UI, state management, and connectivity/data logic.
 
 ```text
-User Action
-    ↓
-Intent
-    ↓
-ViewModel
-    ↓
-Repository / Connectivity Layer
-    ↓
-Android Connectivity APIs
-    ↓
-Result / State
-    ↓
-StateFlow
-    ↓
-Jetpack Compose UI
+                    Jetpack Compose UI
+                           │
+                           ▼
+                       ViewModel
+                           │
+                           ▼
+                       Contract
+                    (Intent / State)
+                           │
+                           ▼
+                       Repository
+                           │
+              ┌────────────┼────────────┐
+              ▼            ▼            ▼
+          Bluetooth       BLE          Wi-Fi
+             APIs         APIs          APIs
 ```
 
-This keeps UI state predictable and separates connectivity logic from presentation.
-
-## 📱 Connectivity Modules
-
-### Wi-Fi
-
-Demonstrates Android Wi-Fi APIs for:
-
-* Network discovery
-* Current connection information
-* Connectivity state
-* Permission handling
-
-### Bluetooth
-
-Demonstrates:
-
-* Bluetooth availability
-* Adapter state
-* Device discovery
-* Pairing/device information
-* Connection state
-
-### BLE
-
-Demonstrates:
-
-* BLE scanning
-* Device discovery
-* Scan result handling
-* Connection workflow
-
-## 🔐 Permissions
-
-The application handles Android runtime permissions required by modern Android versions for Bluetooth and Wi-Fi operations.
-
-Permission behavior may vary depending on Android version and device manufacturer.
+Each connectivity feature is isolated under its own package, making the code easier to understand, test, and extend.
 
 ## 📂 Project Structure
 
 ```text
-app/
-├── data/
-│   ├── bluetooth/
+app/src/main/java/com/example/connectivityhub/
+├── core/
+├── feature/
 │   ├── ble/
+│   ├── bluetooth/
+│   ├── home/
 │   └── wifi/
-│
-├── domain/
-│   └── models/
-│
-├── presentation/
-│   ├── bluetooth/
-│   ├── ble/
-│   ├── wifi/
-│   └── components/
-│
-└── MainActivity.kt
+├── theme/
+├── MainActivity.kt
+└── Navigation.kt
 ```
+
+For example, the Bluetooth feature contains a contract, repository, ViewModel, and UI layer:
+
+```text
+feature/bluetooth/
+├── BluetoothContract.kt
+├── BluetoothRepository.kt
+├── BluetoothViewModel.kt
+└── ui/
+```
+
+The BLE and Wi-Fi features follow the same feature-oriented approach.
+
+## 📱 Connectivity Areas
+
+### Bluetooth
+
+- Bluetooth availability/state
+- Device discovery
+- Device information
+- Connection-state handling
+
+### Bluetooth Low Energy (BLE)
+
+- BLE device scanning
+- Scan result handling
+- Device discovery
+- BLE connection workflow
+
+### Wi-Fi
+
+- Wi-Fi connectivity information
+- Network-related state
+- Runtime permission handling
+
+## 🔐 Android Permissions
+
+Connectivity APIs have different permission requirements across Android versions. This project demonstrates runtime permission handling for Bluetooth and Wi-Fi operations.
+
+For the most reliable Bluetooth/BLE testing, use a **physical Android device** with Bluetooth hardware enabled.
+
+## ⚙️ Build Configuration
+
+- **compileSdk:** 36
+- **targetSdk:** 36
+- **minSdk:** 24
+- **Java:** 17
+- **Kotlin JVM Toolchain:** 17
+- **UI:** Jetpack Compose
 
 ## 🚀 Getting Started
 
 ### Requirements
 
-* Android Studio
-* JDK 17+
-* Android SDK
-* Physical Android device recommended for Bluetooth/BLE testing
+- Android Studio
+- JDK 17+
+- Android SDK 36
+- Physical Android device recommended for Bluetooth/BLE testing
 
-### Run
+### Clone
 
 ```bash
 git clone https://github.com/RajaRituraj/ConnectivityHub.git
 cd ConnectivityHub
 ```
 
-Open the project in Android Studio and run it on a physical Android device.
-
-> Bluetooth and BLE functionality may not work correctly on an emulator because these features depend on device hardware.
+Open the project in Android Studio, allow Gradle synchronization to finish, then run the `app` configuration.
 
 ## 🧪 Testing
 
-The project can be extended with:
+The project is configured with dependencies for both local JVM tests and Compose/instrumented Android tests.
 
-* ViewModel unit tests
-* Repository tests
-* Permission-flow tests
-* UI tests using Compose Testing APIs
+Recommended coverage includes:
+
+- ViewModel state transitions
+- Repository behavior
+- Permission-related states
+- Compose UI interactions
+- Connectivity error states
 
 ## 🎯 What This Project Demonstrates
 
-This project showcases practical Android development skills including:
+This project is intended to demonstrate practical Android engineering skills rather than a simple UI demo:
 
-* Android framework APIs
-* Modern Kotlin development
-* Jetpack Compose
-* MVI and unidirectional data flow
-* Reactive state management
-* Coroutines and Flow
-* Runtime permissions
-* Bluetooth/BLE development
-* Wi-Fi connectivity
-* Separation of concerns
+- Modern Kotlin development
+- Jetpack Compose and Material 3
+- MVI-style unidirectional state management
+- ViewModel + StateFlow
+- Coroutines and asynchronous Android APIs
+- Bluetooth and BLE development
+- Wi-Fi APIs
+- Runtime permission handling
+- Feature-oriented architecture
+- Repository pattern
+- Android navigation
 
-## 🔮 Future Improvements
+## 🔮 Planned Improvements
 
-* Add automated unit and UI tests
-* Add CI using GitHub Actions
-* Add device connection history
-* Add BLE GATT service/characteristic discovery
-* Add network diagnostics
-* Add connection retry and timeout handling
-* Add screenshots and demo video
+- Add comprehensive unit tests for connectivity state handling
+- Add Compose UI tests
+- Add GitHub Actions CI for build and test verification
+- Add screenshots and a short demo video
+- Add BLE GATT service/characteristic discovery
+- Add connection retry and timeout handling
+- Add richer network diagnostics
 
 ## 👨‍💻 Author
 
-**Raja Rituraj**
+**Raja Rituraj**  
+Android Developer | Kotlin | Jetpack Compose | MVI | Clean Architecture
 
-Android Developer with 4+ years of experience building production applications using Kotlin, Jetpack Compose, MVVM/MVI, Clean Architecture, Coroutines, Flow, REST APIs, and modern Android technologies.
+4+ years of professional Android development experience across production applications in logistics, healthcare, e-commerce, and education.
 
-* GitHub: https://github.com/RajaRituraj
-* LinkedIn: https://www.linkedin.com/in/raja-rituraj-600468221/
+- GitHub: https://github.com/RajaRituraj
+- LinkedIn: https://www.linkedin.com/in/raja-rituraj-600468221/
 
 ---
 
 ⭐ If you find this project useful, consider giving it a star.
-
