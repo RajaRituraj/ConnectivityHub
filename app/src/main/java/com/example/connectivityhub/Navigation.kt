@@ -1,5 +1,6 @@
 package com.example.connectivityhub
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -65,6 +66,11 @@ private val destinations = listOf(
 fun MainNavigation() {
     var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
     val previousIndex = remember { mutableIntStateOf(0) }
+
+    BackHandler(enabled = selectedIndex != 0) {
+        previousIndex.intValue = selectedIndex
+        selectedIndex = 0
+    }
 
     Scaffold(
         containerColor = androidx.compose.ui.graphics.Color.Transparent,

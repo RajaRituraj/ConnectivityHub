@@ -33,7 +33,11 @@ class BluetoothRepository(private val context: Context) {
     val isSupported: Boolean get() = adapter != null
 
     /** Whether Bluetooth is currently enabled. */
-    val isEnabled: Boolean get() = adapter?.isEnabled == true
+    val isEnabled: Boolean get() = try {
+        adapter?.isEnabled == true
+    } catch (_: SecurityException) {
+        false
+    }
 
     /**
      * Returns all paired (bonded) devices as a [Flow].
@@ -81,8 +85,13 @@ class BluetoothRepository(private val context: Context) {
         }
         context.registerReceiver(receiver, filter)
 
-        if (adapter?.isDiscovering == true) adapter?.cancelDiscovery()
-        adapter?.startDiscovery()
+        try {
+            if (adapter?.isDiscovering == true) adapter?.cancelDiscovery()
+            adapter?.startDiscovery()
+        } catch (e: SecurityException) {
+            close(e)
+            return@callbackFlow
+        }
 
         awaitClose {
             adapter?.cancelDiscovery()
@@ -92,7 +101,11 @@ class BluetoothRepository(private val context: Context) {
 
     /** Cancels an ongoing Bluetooth discovery scan. */
     fun stopDiscovery() {
-        adapter?.cancelDiscovery()
+        try {
+            adapter?.cancelDiscovery()
+        } catch (e: SecurityException) {
+            // Ignore if permission is missing
+        }
     }
 
     /** Returns a [Flow] of adapter state changes (enabled/disabled). */

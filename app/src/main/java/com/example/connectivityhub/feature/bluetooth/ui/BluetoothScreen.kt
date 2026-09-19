@@ -57,6 +57,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.example.connectivityhub.core.permission.RequestPermissions
+import com.example.connectivityhub.core.permission.bluetoothPermissions
 import com.example.connectivityhub.feature.bluetooth.BluetoothDeviceCategory
 import com.example.connectivityhub.feature.bluetooth.BluetoothDeviceUiModel
 import com.example.connectivityhub.feature.bluetooth.BluetoothIntent
@@ -71,89 +76,99 @@ import com.example.connectivityhub.theme.SuccessGreen
 import com.example.connectivityhub.theme.TextPrimary
 import com.example.connectivityhub.theme.TextSecondary
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BluetoothScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val vm: BluetoothViewModel = viewModel(
-        factory = androidx.lifecycle.viewmodel.initializer { BluetoothViewModel(context) }
+        factory = viewModelFactory {
+            initializer { BluetoothViewModel(context) }
+        }
     )
     val state by vm.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { vm.onIntent(BluetoothIntent.LoadPairedDevices) }
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF06090F), Color(0xFF080C14))))
-    ) {
-        LazyColumn(
-            modifier            = Modifier.fillMaxSize().statusBarsPadding(),
-            contentPadding      = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            item {
-                BluetoothHeader(state = state, vm = vm)
+    RequestPermissions(
+        permissions = bluetoothPermissions,
+        onPermissionsResult = { allGranted, _ ->
+            if (allGranted) {
+                vm.onIntent(BluetoothIntent.LoadPairedDevices)
             }
-
-            if (state.error != null) {
+        }
+    ) { _ ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFF06090F), Color(0xFF080C14))))
+        ) {
+            LazyColumn(
+                modifier            = Modifier.fillMaxSize().statusBarsPadding(),
+                contentPadding      = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
                 item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape    = RoundedCornerShape(12.dp),
-                        colors   = CardDefaults.cardColors(containerColor = ErrorRed.copy(alpha = 0.1f)),
-                        border   = androidx.compose.foundation.BorderStroke(1.dp, ErrorRed.copy(0.4f)),
-                    ) {
-                        Text(
-                            text     = state.error!!,
-                            style    = MaterialTheme.typography.bodySmall,
-                            color    = ErrorRed,
-                            modifier = Modifier.padding(12.dp),
+                    BluetoothHeader(state = state, vm = vm)
+                }
+
+                if (state.error != null) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape    = RoundedCornerShape(12.dp),
+                            colors   = CardDefaults.cardColors(containerColor = ErrorRed.copy(alpha = 0.1f)),
+                            border   = androidx.compose.foundation.BorderStroke(1.dp, ErrorRed.copy(0.4f)),
+                        ) {
+                            Text(
+                                text     = state.error!!,
+                                style    = MaterialTheme.typography.bodySmall,
+                                color    = ErrorRed,
+                                modifier = Modifier.padding(12.dp),
+                            )
+                        }
+                    }
+                }
+
+                if (state.pairedDevices.isNotEmpty()) {
+                    item {
+                        SectionHeader(
+                            title = "Paired Devices",
+                            count = state.pairedDevices.size,
+                            color = SuccessGreen,
                         )
                     }
-                }
-            }
-
-            if (state.pairedDevices.isNotEmpty()) {
-                item {
-                    SectionHeader(
-                        title = "Paired Devices",
-                        count = state.pairedDevices.size,
-                        color = SuccessGreen,
-                    )
-                }
-                items(state.pairedDevices, key = { it.address }) { device ->
-                    BluetoothDeviceItem(device = device, accentColor = SuccessGreen)
-                }
-            }
-
-            if (state.discoveredDevices.isNotEmpty()) {
-                item {
-                    SectionHeader(
-                        title = "Discovered Devices",
-                        count = state.discoveredDevices.size,
-                        color = BluetoothColor,
-                    )
-                }
-                items(state.discoveredDevices, key = { it.address }) { device ->
-                    BluetoothDeviceItem(device = device, accentColor = BluetoothColor)
-                }
-            }
-
-            if (!state.isDiscovering && state.discoveredDevices.isEmpty() && state.pairedDevices.isEmpty()) {
-                item {
-                    Column(
-                        modifier            = Modifier.fillMaxWidth().padding(vertical = 40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Icon(Icons.Filled.Bluetooth, null, tint = TextSecondary, modifier = Modifier.size(64.dp))
-                        Spacer(Modifier.height(12.dp))
-                        Text("No devices found", style = MaterialTheme.typography.titleMedium, color = TextSecondary)
-                        Text("Tap Discover to scan for nearby devices", style = MaterialTheme.typography.bodySmall, color = TextSecondary.copy(0.6f))
+                    items(state.pairedDevices, key = { it.address }) { device ->
+                        BluetoothDeviceItem(device = device, accentColor = SuccessGreen)
                     }
                 }
-            }
 
-            item { Spacer(Modifier.height(80.dp)) }
+                if (state.discoveredDevices.isNotEmpty()) {
+                    item {
+                        SectionHeader(
+                            title = "Discovered Devices",
+                            count = state.discoveredDevices.size,
+                            color = BluetoothColor,
+                        )
+                    }
+                    items(state.discoveredDevices, key = { it.address }) { device ->
+                        BluetoothDeviceItem(device = device, accentColor = BluetoothColor)
+                    }
+                }
+
+                if (!state.isDiscovering && state.discoveredDevices.isEmpty() && state.pairedDevices.isEmpty()) {
+                    item {
+                        Column(
+                            modifier            = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Icon(Icons.Filled.Bluetooth, null, tint = TextSecondary, modifier = Modifier.size(64.dp))
+                            Spacer(Modifier.height(12.dp))
+                            Text("No devices found", style = MaterialTheme.typography.titleMedium, color = TextSecondary)
+                            Text("Tap Discover to scan for nearby devices", style = MaterialTheme.typography.bodySmall, color = TextSecondary.copy(0.6f))
+                        }
+                    }
+                }
+
+                item { Spacer(Modifier.height(80.dp)) }
+            }
         }
     }
 }

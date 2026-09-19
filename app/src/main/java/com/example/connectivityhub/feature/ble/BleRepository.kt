@@ -39,7 +39,11 @@ class BleRepository(private val context: Context) {
         )
 
     /** Whether Bluetooth (and thus BLE) is currently enabled. */
-    val isEnabled: Boolean get() = adapter?.isEnabled == true
+    val isEnabled: Boolean get() = try {
+        adapter?.isEnabled == true
+    } catch (_: SecurityException) {
+        false
+    }
 
     /**
      * Starts a BLE scan and emits discovered [BleDeviceUiModel]s via [Flow].
@@ -70,8 +74,13 @@ class BleRepository(private val context: Context) {
             }
         }
 
-        leScanner?.startScan(filters, settings, callback)
-            ?: close(Exception("BLE scanner not available. Is Bluetooth enabled?"))
+        try {
+            leScanner?.startScan(filters, settings, callback)
+                ?: close(Exception("BLE scanner not available. Is Bluetooth enabled?"))
+        } catch (e: SecurityException) {
+            close(e)
+            return@callbackFlow
+        }
 
         awaitClose {
             try { leScanner?.stopScan(callback) } catch (_: Exception) {}

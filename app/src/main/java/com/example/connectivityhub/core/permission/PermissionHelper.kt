@@ -70,7 +70,8 @@ fun RequestPermissions(
     onPermissionsResult: (allGranted: Boolean, state: MultiplePermissionsState) -> Unit,
     content: @Composable (MultiplePermissionsState) -> Unit,
 ) {
-    val permissionsState = rememberMultiplePermissionsState(permissions = permissions) { results ->
+    lateinit var permissionsState: MultiplePermissionsState
+    permissionsState = rememberMultiplePermissionsState(permissions = permissions) { results ->
         onPermissionsResult(results.values.all { it }, permissionsState)
     }
 

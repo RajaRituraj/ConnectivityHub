@@ -1,16 +1,11 @@
 package com.example.connectivityhub.feature.wifi.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -57,16 +52,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.example.connectivityhub.core.permission.RequestPermissions
+import com.example.connectivityhub.core.permission.wifiPermissions
 import com.example.connectivityhub.feature.wifi.WifiIntent
 import com.example.connectivityhub.feature.wifi.WifiNetworkUiModel
 import com.example.connectivityhub.feature.wifi.WifiState
 import com.example.connectivityhub.feature.wifi.WifiViewModel
 import com.example.connectivityhub.theme.BorderSubtle
 import com.example.connectivityhub.theme.CyanPrimary
-import com.example.connectivityhub.theme.CyanPrimaryDark
 import com.example.connectivityhub.theme.ErrorRed
 import com.example.connectivityhub.theme.NavyCard
-import com.example.connectivityhub.theme.NavySurface
 import com.example.connectivityhub.theme.SignalFair
 import com.example.connectivityhub.theme.SignalFull
 import com.example.connectivityhub.theme.SignalGood
@@ -78,22 +76,30 @@ import com.example.connectivityhub.theme.TextSecondary
 import com.example.connectivityhub.theme.WifiColor
 import com.example.connectivityhub.theme.WifiColorDim
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun WifiScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val vm: WifiViewModel = viewModel(
-        factory = androidx.lifecycle.viewmodel.initializer { WifiViewModel(context) }
+        factory = viewModelFactory {
+            initializer { WifiViewModel(context) }
+        }
     )
     val state by vm.state.collectAsStateWithLifecycle()
 
-    // Auto-scan on first entry
-    LaunchedEffect(Unit) { vm.onIntent(WifiIntent.ScanNetworks) }
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF060D1A), Color(0xFF080C14))))
-    ) {
+    RequestPermissions(
+        permissions = wifiPermissions,
+        onPermissionsResult = { allGranted, _ ->
+            if (allGranted) {
+                vm.onIntent(WifiIntent.ScanNetworks)
+            }
+        }
+    ) { _ ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFF060D1A), Color(0xFF080C14))))
+        ) {
         LazyColumn(
             modifier            = Modifier.fillMaxSize().statusBarsPadding(),
             contentPadding      = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
@@ -137,6 +143,8 @@ fun WifiScreen(modifier: Modifier = Modifier) {
             item { Spacer(Modifier.height(80.dp)) }
         }
     }
+}
+
 }
 
 @Composable

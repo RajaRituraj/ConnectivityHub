@@ -50,6 +50,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.example.connectivityhub.core.permission.RequestPermissions
+import com.example.connectivityhub.core.permission.blePermissions
 import com.example.connectivityhub.feature.ble.BleDeviceUiModel
 import com.example.connectivityhub.feature.ble.BleIntent
 import com.example.connectivityhub.feature.ble.BleViewModel
@@ -61,11 +66,14 @@ import com.example.connectivityhub.theme.NavyCard
 import com.example.connectivityhub.theme.TextPrimary
 import com.example.connectivityhub.theme.TextSecondary
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun BleScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val vm: BleViewModel = viewModel(
-        factory = androidx.lifecycle.viewmodel.initializer { BleViewModel(context) }
+        factory = viewModelFactory {
+            initializer { BleViewModel(context) }
+        }
     )
     val state by vm.state.collectAsStateWithLifecycle()
 
@@ -89,11 +97,15 @@ fun BleScreen(modifier: Modifier = Modifier) {
         label         = "Ring3",
     )
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF060A08), Color(0xFF080C14))))
-    ) {
+    RequestPermissions(
+        permissions = blePermissions,
+        onPermissionsResult = { _, _ -> }
+    ) { _ ->
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(Color(0xFF060A08), Color(0xFF080C14))))
+        ) {
         LazyColumn(
             modifier            = Modifier.fillMaxSize().statusBarsPadding(),
             contentPadding      = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
@@ -192,6 +204,7 @@ fun BleScreen(modifier: Modifier = Modifier) {
             item { Spacer(Modifier.height(80.dp)) }
         }
     }
+}
 }
 
 @Composable

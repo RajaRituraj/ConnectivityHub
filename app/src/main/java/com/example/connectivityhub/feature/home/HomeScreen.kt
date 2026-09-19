@@ -54,6 +54,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.connectivityhub.theme.BleColor
 import com.example.connectivityhub.theme.BleColorDim
 import com.example.connectivityhub.theme.BluetoothColor
@@ -76,7 +78,9 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val vm: HomeViewModel = viewModel(
-        factory = androidx.lifecycle.viewmodel.initializer { HomeViewModel(context) }
+        factory = viewModelFactory {
+            initializer { HomeViewModel(context) }
+        }
     )
     val state by vm.state.collectAsStateWithLifecycle()
 
